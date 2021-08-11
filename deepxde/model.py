@@ -52,7 +52,7 @@ class Model(object):
         self,
         optimizer,
         lr=None,
-        loss="MSE",
+        loss="Hs",
         metrics=None,
         decay=None,
         loss_weights=None,
