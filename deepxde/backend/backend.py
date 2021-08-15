@@ -71,6 +71,27 @@ def shape(input_tensor):
     """
 
 
+def ndim(input_tensor):
+    """Returns the number of dimensions of the tensor.
+
+    Args:
+        input (Tensor): The input tensor.
+
+    Returns:
+        int: The number of dimensions.
+    """
+
+
+def Variable(initial_value, dtype=None):
+    """Return a trainable variable.
+
+    Args:
+        initial_value: The initial value of the variable.
+        dtype: The desired data type of returned tensor. Default: if None, infers data
+            type from data.
+    """
+
+
 def as_tensor(data, dtype=None):
     """Convert the data to a Tensor.
 
@@ -78,8 +99,8 @@ def as_tensor(data, dtype=None):
 
     Args:
         data. Tensor object, numpy array, Python list, and Python scalar.
-    dtype (data type, optional). It should be one of the values in the data type dict.
-        If None, infers data type from data.
+        dtype (data type, optional). It should be one of the values in the data type dict.
+            If None, infers data type from data.
 
     Returns:
         Tensor. A framework-specific tensor.
@@ -94,6 +115,17 @@ def from_numpy(np_array):
 
     Returns:
         Tensor. A framework-specific tensor.
+    """
+
+
+def to_numpy(input_tensor):
+    """Create a numpy ndarray that shares the same underlying storage, if possible.
+
+    Args:
+        input_tensor (Tensor).
+
+    Returns:
+        np_array (numpy.ndarray). The numpy ndarray.
     """
 
 

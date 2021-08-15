@@ -13,6 +13,7 @@ from . import icbcs
 from . import nn
 from . import utils
 
+from .backend import Variable
 from .icbcs import (
     DirichletBC,
     NeumannBC,
@@ -23,18 +24,13 @@ from .icbcs import (
     IC,
 )
 from .model import Model
-from .postprocessing import (
-    plot_best_state,
-    plot_loss_history,
-    save_best_state,
-    save_loss_history,
-    saveplot,
-)
+from .postprocessing import saveplot
 
 # Backward compatibility
 maps = nn
 
 __all__ = [
+    "backend",
     "callbacks",
     "data",
     "geometry",
@@ -44,4 +40,5 @@ __all__ = [
     "nn",
     "utils",
     "Model",
+    "Variable",
 ]
