@@ -37,33 +37,38 @@ def zero(*_):
     # TODO: pytorch
     return tf.constant(0, dtype=config.real(tf))
 
-# def pde(x, y):
-#         dy_xx = dde.grad.hessian(y, x, i=0, j=0)
-#         dy_yy = dde.grad.hessian(y, x, i=1, j=1)
-#         return -dy_xx - dy_yy - 1
+def pde(x, y):
+        dy_xx = dde.grad.hessian(y, x, i=0, j=0)
+        dy_yy = dde.grad.hessian(y, x, i=1, j=1)
+        return -dy_xx - dy_yy - 1
 
-# def boundary(_, on_boundary):
-#         return on_boundary
+def boundary(_, on_boundary):
+        return on_boundary
 
 def hs_norm(y_true, y_pred):
-    # ## S^1 Sphere Poisson Equation
-    # geom = dde.geometry.Rectangle(xmin=[0, 0], xmax=[1, 2 * np.pi])
+    ## S^1 Sphere Poisson Equation
+    # geom = dde.geometry.Rectangle(xmin=[0, 0], xmax=[1, 2 * np.pi])    
     # bc_rad = dde.DirichletBC(
     #     geom,
     #     lambda x: np.cos(x[:, 1:2]),
     #     lambda x, on_boundary: on_boundary and np.isclose(x[0], 1),
     # )
-    # data = dde.data.PDE(geom, pde, bc_rad, num_domain=1200, num_boundary=120)#, num_test=1500
+    geom = dde.geometry.Polygon([[0, 0], [1, 0], [1, -1], [-1, -1], [-1, 1], [0, 1]])
+    bc = dde.DirichletBC(geom, lambda x: 0, boundary)
 
-    # net = dde.maps.FNN([2] + [50] * 4 + [1], "tanh", "Glorot uniform")
+    data = dde.data.PDE(geom, pde, bc, num_domain=1200, num_boundary=120)
+    net = dde.maps.FNN([2] + [50] * 4 + [1], "tanh", "Glorot uniform")
+
+    # n = dde.Model(data, net).train_state.y_pred_train.shape[0]
+
+    net = dde.maps.FNN([2] + [50] * 4 + [1], "tanh", "Glorot uniform")
     u = y_true - y_pred
-    n = 53
+    n = 132
     if u.shape[0] is not None:
         n = u.shape[0]
     u = tf.cast(u, tf.float64)
-    s = 0
-    ## test here 
-    # n = 1320
+    s = -1
+
     dft_matrix = np.fft.fft(np.eye(n))
     inverse_dft_matrix = np.fft.ifft(np.eye(n))
     hs_weight_matrix = np.diag([(1 + i ** 2)**(s/2) for i in range(n)])

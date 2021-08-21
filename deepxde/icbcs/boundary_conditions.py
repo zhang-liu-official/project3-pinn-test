@@ -12,6 +12,7 @@ __all__ = [
     "PeriodicBC",
     "OperatorBC",
     "PointSetBC",
+    "ZeroLossBC",
 ]
 
 import numbers
@@ -179,7 +180,25 @@ class PointSetBC(object):
     def error(self, X, inputs, outputs, beg, end):
         return outputs[beg:end, self.component : self.component + 1] - self.values
 
+class ZeroLossBC(BC):
+    """if we do not want BC to contribute to the total loss
+    
+    Args:
+        geom: ``Geometry``.
+        func: A function takes arguments (`inputs`, `outputs`, `X`)
+            and outputs a tensor of size `N x 1`, where `N` is the length of `inputs`.
+            `inputs` and `outputs` are the network input and output tensors, respectively;
+            `X` are the NumPy array of the `inputs`.
+        on_boundary: (x, Geometry.on_boundary(x)) -> True/False.
+    """
 
+    def __init__(self, geom, func, on_boundary, component=0):
+        super(ZeroLossBC, self).__init__(geom, on_boundary, component)
+        self.func = func
+
+    def error(self, X, inputs, outputs, beg, end):
+        return 0
+        
 def npfunc_range_autocache(func):
     """Call a NumPy function on a range of the input ndarray.
 

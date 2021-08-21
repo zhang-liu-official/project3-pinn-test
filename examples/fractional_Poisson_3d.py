@@ -35,6 +35,7 @@ def func(x):
 
 
 def main():
+    # unit sphere centered at (0,0,0) (radius = 1)
     geom = dde.geometry.Sphere([0, 0, 0], 1)
     bc = dde.DirichletBC(geom, func, lambda _, on_boundary: on_boundary)
 

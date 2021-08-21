@@ -8,6 +8,7 @@ __all__ = [
     "PeriodicBC",
     "OperatorBC",
     "PointSetBC",
+    "ZeroLossBC",
     "IC",
 ]
 
@@ -19,5 +20,6 @@ from .boundary_conditions import (
     PeriodicBC,
     OperatorBC,
     PointSetBC,
+    ZeroLossBC,
 )
 from .initial_conditions import IC
