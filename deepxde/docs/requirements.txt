@@ -1,0 +1,8 @@
+matplotlib
+numpy
+scikit-learn
+scikit-optimize
+scipy
+tensorflow>=2.2.0
+tensorflow-probability
+torch
