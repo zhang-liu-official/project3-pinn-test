@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import print_function
 
 from . import backend as bkd
+from . import icbcs as icbcs 
 from . import config
 from .backend import tf
 import numpy as np
@@ -39,38 +40,18 @@ def zero(*_):
     return tf.constant(0, dtype=config.real(tf))
 
 def hs_norm(y_true, y_pred):
-    def pde(x, y):
-        dy_xx = dde.grad.hessian(y, x, i=0, j=0)
-        dy_yy = dde.grad.hessian(y, x, i=1, j=1)
-        return -dy_xx - dy_yy - 1
-
-    def boundary(_, on_boundary):
-        return on_boundary
-
-    ## S^1 Sphere Poisson Equation
-    geom = dde.geometry.Rectangle(xmin=[0, 0], xmax=[1, 2 * np.pi])
-    bc_rad = dde.DirichletBC(
-        geom,
-        lambda x: np.cos(x[:, 1:2]),
-        lambda x, on_boundary: on_boundary and np.isclose(x[0], 1),
-    )
-    data = dde.data.PDE(geom, pde, bc_rad, num_domain=1200, num_boundary=120, num_test=1500)
-
-    net = dde.maps.FNN([2] + [50] * 4 + [1], "tanh", "Glorot uniform")
-    n = dde.Model(data, net).train_state.y_pred_train.shape[0]
-    u = y_true - y_pred
+    u = y_pred - y_true 
+    n = u.shape[0]
     u = tf.cast(u, tf.float64)
-    s = -1
-    ## test here 
-    # n = 1320
+    s = 1
+    
     dft_matrix = np.fft.fft(np.eye(n))
     inverse_dft_matrix = np.fft.ifft(np.eye(n))
     hs_weight_matrix = np.diag([(1 + i ** 2)**(s/2) for i in range(n)])
     result = np.matmul(inverse_dft_matrix, np.matmul(hs_weight_matrix, dft_matrix))
     hermitian_adjoint = np.matrix(result)
-    result = np.matmul(hermitian_adjoint.getH(), result)
-    P = np.array(result)
-    
+    P = np.array(np.matmul(hermitian_adjoint.getH(), result))
+
     ## # SciPy's L-BFGS-B Fortran implementation requires and returns float64
     P = tf.convert_to_tensor(P, dtype=tf.float64)
     hs_loss = 1.0/n * tf.matmul(tf.transpose(u), tf.matmul(P, u))

@@ -20,6 +20,7 @@ from .icbcs import (
     PeriodicBC,
     RobinBC,
     PointSetBC,
+    ZeroLossBC,
     IC,
 )
 from .model import Model
