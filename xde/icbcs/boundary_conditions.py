@@ -72,8 +72,8 @@ class DirichletBC(BC):
                 "Use argument 'component' for different components."
             )
         values = bkd.as_tensor(values, dtype=config.real(bkd.lib))
-        return outputs[beg:end, self.component : self.component + 1] - values
-
+        # return outputs[beg:end, self.component : self.component + 1] - values
+        return 0.0
 
 class NeumannBC(BC):
     """Neumann boundary conditions: dy/dn(x) = func(x)."""
@@ -126,7 +126,7 @@ class PeriodicBC(BC):
             dydx = grad.jacobian(outputs, inputs, i=self.component, j=self.component_x)
             yleft = dydx[beg:mid]
             yright = dydx[mid:end]
-        return yleft - yright
+        return 0.0
 
 
 class OperatorBC(BC):
