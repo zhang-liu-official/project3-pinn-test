@@ -19,17 +19,19 @@ def pde(x, y):
     # return -dy_xx - np.pi ** 2 * torch.sin(np.pi * x)
 
 
-def boundary(x, on_boundary):
-    return on_boundary
+# def boundary(x, on_boundary):
+#     return on_boundary
 
 
-def func(x):
+def solution(x):
     return np.sin(np.pi * x)
-
-
+def boundary(x, on_boundary):
+    return on_boundary and (np.isclose(x[0], -1) or np.isclose(x[0], 1))
+def func(x):
+    return 0
 geom = dde.geometry.Interval(-1, 1)
 bc = dde.DirichletBC(geom, func, boundary)
-data = dde.data.PDE(geom, pde, bc, 16, 2, solution=func, num_test=100)
+data = dde.data.PDE(geom, pde, bc, 16, 2, solution=solution, num_test=100)
 
 layer_size = [1] + [50] * 3 + [1]
 activation = "tanh"
@@ -63,3 +65,13 @@ plt.plot(x, y)
 plt.xlabel("x")
 plt.ylabel("PDE residual")
 plt.show()
+## uniform_points not implemented for hypersphere. test data used random_points instead, following distribution defined here: https://mathworld.wolfram.com/DiskPointPicking.html
+X = geom.uniform_points(1000)
+# X = feature_transform(X)
+y_true = solution(X)
+# y_pred is PDE residual
+y_pred = model.predict(X, operator = pde)
+print("L2 relative error:", dde.metrics.l2_relative_error(y_true, y_pred))
+y_true = y_true.reshape((y_true.shape[0],1))
+y_pred = y_pred.reshape((y_pred.shape[0],1))
+np.savetxt("test.dat", np.hstack((X,y_true, y_pred)))

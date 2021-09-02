@@ -17,7 +17,7 @@ def pde(x, y):
     
     # r = x[:, 0:1] is the radial distance and theta = x[:, 1:] is the angle
 
-    r, theta = x[:, 0:1], x[:, 1:]
+    theta = x[:]
     # dy_xx = dde.grad.hessian(y, x, i=0, j=0)
     # dy_yy = dde.grad.hessian(y, x, i=1, j=1)
     # lhs = dy_xx + dy_yy
@@ -29,47 +29,57 @@ def pde(x, y):
     ## if laplace equation: 
     # rhs = 0
 
-    dy_thetatheta = dde.grad.hessian(y, x, i=1, j=1)
+    dy_thetatheta = dde.grad.hessian(y, x, i=0, j=0)
     lhs = dy_thetatheta
     rhs = tf.sin(theta)
     return lhs - rhs 
 
-def boundary(_, on_boundary):
-    return on_boundary
+def boundary(x, _):
+    ## (Note that because of rounding-off errors, it is often wise to use np.isclose to test whether two floating point values are equivalent.)
+    return np.isclose(x[0], 0) or np.isclose(x[0], 2*np.pi)
+
+def func(x):
+    return 0
+
+# def boundary(x, on_boundary):
+#     return on_boundary
+
+# def func(x):
+#     theta = x[:]
+#     return -np.sin(theta)
+
+def solution(x):
+    theta = x[:]
+    ## if laplacian, the solution is:
+    # return r  * np.cos(theta) 
+    return -np.sin(theta)
 
 # Use [r*sin(theta), r*cos(theta)] as features,
 # so that the network is automatically periodic along the theta coordinate.
 # Backend tensorflow.compat.v1 or tensorflow
-
 # def feature_transform(x):
 #     return tf.concat(
-#         [x[:, 0:1] * tf.sin(x[:, 1:2]), x[:, 0:1] * tf.cos(x[:, 1:2])], axis=1
+#         [tf.sin(x[:]), tf.cos(x[:])], axis=1 ## since r = 1 
 #     )
-
-def func(x):
-    r, theta = x[:, 0:1], x[:, 1:]
-    ## if laplacian, the solution is:
-    # return r  * np.cos(theta) 
-    # return -1/2 *( -np.sqrt(3/(8*np.pi)) * np.sin(theta) +  np.sqrt(3/(4*np.pi)) * np.cos(theta) )
-    return - 1/2 * np.sin(theta)
 
 def main():
     # geom = dde.geometry.Rectangle(xmin=[0, 0], xmax=[1, 2 * np.pi])
     # unit sphere centered at (0,0,0) (radius = 1)
-    # geom = dde.geometry.Sphere([0, 0, 0], 1)
-    geom = dde.geometry.geometry_nd.Hypersphere([0,0], radius = 1)
+    # geom = dde.geometry.geometry_nd.Hypersphere([0,0], radius = 1)
+    geom = dde.geometry.geometry_1d.Interval(0, 2 * np.pi)
 
-    bc = xde.DirichletBC(
+    ## BC: u(0) = u(2 * pi) = 0
+    bc = dde.DirichletBC(
         geom,
-        func,
+        func, 
         boundary,
     )
 
     # bc = xde.ZeroLossBC(geom, func, boundary)
     data = dde.data.PDE(
-        geom, pde, bc, num_domain=2500, num_boundary=0, num_test = 1000, solution = func)
+        geom, pde, bc, num_domain=100, num_boundary=2, num_test = 80, solution = solution)
     ## original NN parameters
-    net = dde.maps.FNN([2] + [50] * 4 + [1], "tanh", "Glorot uniform")
+    net = dde.maps.FNN([1] + [500]  + [1], "tanh", "Glorot uniform")
 
     ## over-parameterized
     # net = dde.maps.FNN([2] + [1200]*2  + [1], "tanh", "Glorot uniform")
@@ -84,7 +94,8 @@ def main():
 
     ## uniform_points not implemented for hypersphere. test data used random_points instead, following distribution defined here: https://mathworld.wolfram.com/DiskPointPicking.html
     X = geom.uniform_points(1000)
-    y_true = func(X)
+    # X = feature_transform(X)
+    y_true = solution(X)
     # y_pred is PDE residual
     y_pred = model.predict(X, operator = pde)
     print("L2 relative error:", dde.metrics.l2_relative_error(y_true, y_pred))

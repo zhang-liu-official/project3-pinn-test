@@ -72,8 +72,8 @@ class DirichletBC(BC):
                 "Use argument 'component' for different components."
             )
         values = bkd.as_tensor(values, dtype=config.real(bkd.lib))
-        # return outputs[beg:end, self.component : self.component + 1] - values
-        return 0.0
+        return outputs[beg:end, self.component : self.component + 1] - values
+        # return 0.0
 
 class NeumannBC(BC):
     """Neumann boundary conditions: dy/dn(x) = func(x)."""
