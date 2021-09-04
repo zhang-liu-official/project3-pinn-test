@@ -42,8 +42,10 @@ def zero(*_):
 def hs_norm(y_true, y_pred):
     u = y_pred - y_true 
     n = u.shape[0]
+    print("******************************************")
+    print(n)
     u = tf.cast(u, tf.float64)
-    s = 1
+    s = -1
     
     dft_matrix = np.fft.fft(np.eye(n))
     inverse_dft_matrix = np.fft.ifft(np.eye(n))

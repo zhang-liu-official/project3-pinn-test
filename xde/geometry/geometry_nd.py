@@ -132,19 +132,18 @@ class Hypersphere(Geometry):
         return _n
 
     def random_points(self, n, random="pseudo"):
-        """https://math.stackexchange.com/questions/87230/picking-random-points-in-the-volume-of-sphere-with-uniform-probability"""
-        if random == "pseudo":
-            U = np.random.rand(n, 1)
-            X = np.random.normal(size=(n, self.dim))
-        else:
-            rng = sample(n, self.dim + 1, random)
-            U, X = rng[:, 0:1], rng[:, 1:]
-            X = stats.norm.ppf(X)
-        X = preprocessing.normalize(X)
-        X = U ** (1 / self.dim) * X
-        return self.radius * X + self.center
+        # """https://math.stackexchange.com/questions/87230/picking-random-points-in-the-volume-of-sphere-with-uniform-probability"""
+        # if random == "pseudo":
+        #     U = np.random.rand(n, 1)
+        #     X = np.random.normal(size=(n, self.dim))
+        # else:
+        #     rng = sample(n, self.dim + 1, random)
+        #     U, X = rng[:, 0:1], rng[:, 1:]
+        #     X = stats.norm.ppf(X)
+        # X = preprocessing.normalize(X)
 
-    def random_boundary_points(self, n, random="pseudo"):
+        # the following line will sample points INSIDE the volume of the sphere, without it we will be sampling points ON the sphere
+        # X = U ** (1 / self.dim) * X
         """http://mathworld.wolfram.com/HyperspherePointPicking.html"""
         if random == "pseudo":
             X = np.random.normal(size=(n, self.dim)).astype(config.real(np))
@@ -154,6 +153,17 @@ class Hypersphere(Geometry):
         X = preprocessing.normalize(X)
         return self.radius * X + self.center
 
+    def random_boundary_points(self, n, random="pseudo"):
+        # """http://mathworld.wolfram.com/HyperspherePointPicking.html"""
+        # if random == "pseudo":
+        #     X = np.random.normal(size=(n, self.dim)).astype(config.real(np))
+        # else:
+        #     U = sample(n, self.dim, random)
+        #     X = stats.norm.ppf(U)
+        # X = preprocessing.normalize(X)
+        # return self.radius * X + self.center
+        return None
+        
     def background_points(self, x, dirn, dist2npt, shift):
         dirn = dirn / np.linalg.norm(dirn)
         dx = self.distance2boundary_unitdirn(x, -dirn)

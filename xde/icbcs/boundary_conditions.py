@@ -126,7 +126,7 @@ class PeriodicBC(BC):
             dydx = grad.jacobian(outputs, inputs, i=self.component, j=self.component_x)
             yleft = dydx[beg:mid]
             yright = dydx[mid:end]
-        return 0.0
+        return yleft - yright
 
 
 class OperatorBC(BC):
@@ -184,9 +184,8 @@ class ZeroLossBC(BC):
         on_boundary: (x, Geometry.on_boundary(x)) -> True/False.
     """
 
-    def __init__(self, geom, func, on_boundary, component=0):
+    def __init__(self, geom, on_boundary, component=0):
         super(ZeroLossBC, self).__init__(geom, on_boundary, component)
-        self.func = func
 
     def error(self, X, inputs, outputs, beg, end):
         return 0.0

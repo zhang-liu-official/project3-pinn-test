@@ -29,24 +29,17 @@ def pde(x, y):
     ## if laplace equation: 
     # rhs = 0
 
-    dy_thetatheta = dde.grad.hessian(y, x, i=0, j=0)
+    dy_thetatheta = xde.grad.hessian(y, x, i=0, j=0)
     lhs = dy_thetatheta
     rhs = tf.sin(theta)
     return lhs - rhs 
 
-def boundary(x, _):
+def boundary0(x,_):
+    return np.isclose(x[0],0)
+
+def boundary(x, on_boundary):
     ## (Note that because of rounding-off errors, it is often wise to use np.isclose to test whether two floating point values are equivalent.)
-    return np.isclose(x[0], 0) or np.isclose(x[0], 2*np.pi)
-
-def func(x):
-    return 0
-
-# def boundary(x, on_boundary):
-#     return on_boundary
-
-# def func(x):
-#     theta = x[:]
-#     return -np.sin(theta)
+    return on_boundary 
 
 def solution(x):
     theta = x[:]
@@ -66,31 +59,46 @@ def main():
     # geom = dde.geometry.Rectangle(xmin=[0, 0], xmax=[1, 2 * np.pi])
     # unit sphere centered at (0,0,0) (radius = 1)
     # geom = dde.geometry.geometry_nd.Hypersphere([0,0], radius = 1)
-    geom = dde.geometry.geometry_1d.Interval(0, 2 * np.pi)
+    geom = xde.geometry.geometry_1d.Interval(0, 2 * np.pi)
 
-    ## BC: u(0) = u(2 * pi) = 0
-    bc = dde.DirichletBC(
+    ## if the following code is not included, the solution will be -sin(theta) + C
+    # bc0 = dde.DirichletBC(
+    #     geom,
+    #     lambda x: 0 , 
+    #     boundary0,
+    # )
+
+    ## BC: u(0) = u(2 * pi) 
+    bc = xde.PeriodicBC(
         geom,
-        func, 
+        0, 
         boundary,
     )
 
+    # ref: https://github.com/lululxvi/deepxde/issues/51
+    bc_der = xde.PeriodicBC(
+        geom,
+        0, 
+        boundary,
+        derivative_order=1,
+    )
+
     # bc = xde.ZeroLossBC(geom, func, boundary)
-    data = dde.data.PDE(
-        geom, pde, bc, num_domain=100, num_boundary=2, num_test = 80, solution = solution)
+    data = xde.data.PDE(
+        geom, pde,  [bc, bc_der], num_domain=100, num_boundary=80, num_test = 80, solution = solution)
     ## original NN parameters
-    net = dde.maps.FNN([1] + [500]  + [1], "tanh", "Glorot uniform")
+    net = xde.maps.FNN([1] + [500]  + [1], "tanh", "Glorot uniform")
 
     ## over-parameterized
     # net = dde.maps.FNN([2] + [1200]*2  + [1], "tanh", "Glorot uniform")
 
     # net.apply_feature_transform(feature_transform)
 
-    model = dde.Model(data, net)
+    model = xde.Model(data, net)
     model.compile("adam", lr=0.001, metrics=["l2 relative error"])
     
     losshistory, train_state = model.train(epochs=15000)
-    dde.saveplot(losshistory, train_state, issave=True, isplot=True)
+    xde.saveplot(losshistory, train_state, issave=True, isplot=True)
 
     ## uniform_points not implemented for hypersphere. test data used random_points instead, following distribution defined here: https://mathworld.wolfram.com/DiskPointPicking.html
     X = geom.uniform_points(1000)
@@ -98,7 +106,7 @@ def main():
     y_true = solution(X)
     # y_pred is PDE residual
     y_pred = model.predict(X, operator = pde)
-    print("L2 relative error:", dde.metrics.l2_relative_error(y_true, y_pred))
+    print("L2 relative error:", xde.metrics.l2_relative_error(y_true, y_pred))
     y_true = y_true.reshape((y_true.shape[0],1))
     y_pred = y_pred.reshape((y_pred.shape[0],1))
     np.savetxt("test.dat", np.hstack((X,y_true, y_pred)))
