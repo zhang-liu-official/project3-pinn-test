@@ -2,26 +2,28 @@ import matplotlib
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
-
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
 # domains
 # test data.
 data = np.genfromtxt("test.dat", delimiter=' ')
 x = data[:, 0]
 y = data[:, 1]
 z = data[:, 2]
-pred = data[:,3]
+true = data[:,3]
+pred = data[:,4]
+true = pred.reshape((true.shape[0],1))
 pred = pred.reshape((pred.shape[0],1))
 # convert to 2d matrices
-# Z = np.outer(z.T, z)  
-X, Y = np.meshgrid(x, y) 
-Z, _= np.meshgrid(z,x)      
-Pred, _ = np.meshgrid(pred,x)    
+X, Y, Z = np.meshgrid(x, y, z) 
+Pred = np.outer(pred.T, pred)
+fig = plt.figure()
 
-# print(X.shape)
-# print(Y.shape)
-# print(Z.shape)
-# print(pred.shape)
-# fourth dimention - colormap
+# # print(X.shape)
+# # print(Y.shape)
+# # print(Z.shape)
+# # print(pred.shape)
+# # fourth dimention - colormap
 # create colormap according to x-value (can use any 50x50 array)
 color_dimension = Pred # change to desired fourth dimension
 minn, maxx = color_dimension.min(), color_dimension.max()
@@ -33,7 +35,7 @@ fcolors = m.to_rgba(color_dimension)
 # plot
 fig = plt.figure()
 ax = fig.gca(projection='3d')
-ax.plot_surface(X,Y,Z, rstride=1, cstride=1, facecolors=fcolors, shade=False)
+ax.plot_surface(X,Y,Z, rstride=1, cstride=1, facecolors=fcolors, vmin=minn, vmax=maxx, shade=False)
 ax.set_xlabel('x')
 ax.set_ylabel('y')
 ax.set_zlabel('z')
