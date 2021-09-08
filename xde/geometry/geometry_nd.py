@@ -162,7 +162,10 @@ class Hypersphere(Geometry):
         #     X = stats.norm.ppf(U)
         # X = preprocessing.normalize(X)
         # return self.radius * X + self.center
-        return None
+
+        ## for S^2:
+        X = [1, 0, 0]
+        return X
         
     def background_points(self, x, dirn, dist2npt, shift):
         dirn = dirn / np.linalg.norm(dirn)

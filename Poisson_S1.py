@@ -61,12 +61,12 @@ def main():
     # geom = dde.geometry.geometry_nd.Hypersphere([0,0], radius = 1)
     geom = xde.geometry.geometry_1d.Interval(0, 2 * np.pi)
 
-    ## if the following code is not included, the solution will be -sin(theta) + C
-    # bc0 = dde.DirichletBC(
-    #     geom,
-    #     lambda x: 0 , 
-    #     boundary0,
-    # )
+    # if the following code is not included, the solution will be -sin(theta) + C
+    bc0 = xde.DirichletBC(
+        geom,
+        lambda x: 0 , 
+        boundary0,
+    )
 
     ## BC: u(0) = u(2 * pi) 
     bc = xde.PeriodicBC(
@@ -85,7 +85,7 @@ def main():
 
     # bc = xde.ZeroLossBC(geom, func, boundary)
     data = xde.data.PDE(
-        geom, pde,  [bc, bc_der], num_domain=100, num_boundary=80, num_test = 80, solution = solution)
+        geom, pde,  [bc0, bc, bc_der], num_domain=100, num_boundary=80, num_test = 1000, solution = solution)
     ## original NN parameters
     net = xde.maps.FNN([1] + [500]  + [1], "tanh", "Glorot uniform")
 

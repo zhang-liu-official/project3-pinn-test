@@ -6,7 +6,7 @@ true = A(:,4);
 pred = A(:,5);
 markerSize = 500;
 
-scatter3(x,y,z,markerSize,true,'filled')
+scatter3(x,y,z,markerSize,pred,'filled')
 colorbar
 axis equal;
 scatter3(x,y,z,markerSize,pred,'filled')

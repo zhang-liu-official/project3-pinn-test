@@ -41,8 +41,11 @@ def pde(x, y):
     # rhs = tf.math.multiply(X3, X1)
     return lhs - rhs 
 
-def boundary(x, on_boundary):
-    return on_boundary
+# def boundary(x, on_boundary):
+#     return on_boundary
+def boundary(x,on_boundary):
+    ## e.g. x = [ 0.57735027 -0.57735027  0.57735027] x-y-z coordinates 
+    return on_boundary#np.isclose(x[0],0) and np.isclose(x[1],0) and np.isclose(x[2],1)
 
 def solution(x):
     X1, X2, X3 = x[:, 0], x[:,1], x[:,2]
@@ -55,6 +58,7 @@ def solution(x):
 
     ans = - np.power(X1,2) - np.power(X2,2)+ 2 * np.power(X3,2)
     ans = ans.reshape((ans.shape[0], 1))
+    ans = np.diag(np.full(ans.shape[0],-1/6)) @ ans
     return ans
 
 def main():
@@ -63,26 +67,26 @@ def main():
     # geom = dde.geometry.Sphere([0, 0, 0], 1)
     geom = xde.geometry.geometry_nd.Hypersphere([0,0,0], radius = 1)
 
-    # bc = dde.DirichletBC(
-    #     geom,
-    #     lambda x: np.cos(x[:, 1:2]),
-    #     lambda x, on_boundary: on_boundary and np.isclose(x[0], 1),
-    # )
-
     bc = xde.ZeroLossBC(
         geom,
         boundary,
     )
+    ## BC u(1,0,0) = 1/6 (by substituting into the true solution)
+    # bc = xde.DirichletBC(
+    #     geom,
+    #     lambda x: 1/6, 
+    #     boundary,
+    # )
 
     data = xde.data.PDE(
-        geom, pde, bc, num_domain=1200, num_boundary= 0, num_test = 100, solution = solution)
+        geom, pde, bc, num_domain=600, num_boundary=0, num_test = 1000, solution = solution)
 
-    net = xde.maps.FNN([3] + [50] * 4 + [1], "tanh", "Glorot uniform")
+    net = xde.maps.FNN([3] + [700] + [1], "tanh", "Glorot uniform")
 
     model = xde.Model(data, net)
     model.compile("adam", lr=0.001, metrics=["l2 relative error"])
     
-    losshistory, train_state = model.train(epochs=30000)
+    losshistory, train_state = model.train(epochs=15000)
     xde.saveplot(losshistory, train_state, issave=True, isplot=True)
 
     ## uniform_points not implemented for hypersphere. test data used random_points instead, following distribution defined here: https://mathworld.wolfram.com/DiskPointPicking.html
