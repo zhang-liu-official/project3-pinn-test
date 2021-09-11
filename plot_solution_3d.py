@@ -2,42 +2,59 @@ import matplotlib
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
+from numpy import pi
+
+## The function that we are trying to plot takes input (x, y, z) on the surface of interest
+
+def f(x, y, z=None):
+	# if z is not None:
+	# 	assert np.isclose(x**2 + y**2 + z**2, 1.0) ## check that this is on the unit sphere surface
+	return y
 
 # domains
 # test data.
 data = np.genfromtxt("test.dat", delimiter=' ')
-x = data[:, 0]
-y = data[:, 1]
-z = data[:, 2]
-pred = data[:,3]
-pred = pred.reshape((pred.shape[0],1))
-# convert to 2d matrices
-# Z = np.outer(z.T, z)  
-X, Y = np.meshgrid(x, y) 
-Z, _= np.meshgrid(z,x)      
-Pred, _ = np.meshgrid(pred,x)    
+# x = data[:, 0]
+# y = data[:, 1]
+# z = data[:, 2]
+
+x = np.linspace(-1, 1, 100)
+y = np.linspace(-1, 1, 100)
+X, Y = np.meshgrid(x, y)
+Z = np.sqrt(1 - X**2 - Y**2)
+
+
+# print(x, y, z)
+
+# pred = data[:,3]
+# pred = pred.reshape((pred.shape[0],1))
+# # convert to 2d matrices
+# # Z = np.outer(z.T, z)  
+# X, Y = np.meshgrid(x, y) 
+# # Z, _= np.meshgrid(z,x)
+# Pred, _ = np.meshgrid(pred,x)
 
 # print(X.shape)
 # print(Y.shape)
 # print(Z.shape)
 # print(pred.shape)
-# fourth dimention - colormap
+# fourth dimension - colormap
 # create colormap according to x-value (can use any 50x50 array)
-color_dimension = Pred # change to desired fourth dimension
-minn, maxx = color_dimension.min(), color_dimension.max()
+color = f(X, Y, Z) # change to desired fourth dimension
+minn, maxx = color.min(), color.max()
 norm = matplotlib.colors.Normalize(minn, maxx)
 m = plt.cm.ScalarMappable(norm=norm, cmap='jet')
 m.set_array([])
-fcolors = m.to_rgba(color_dimension)
+fcolors = m.to_rgba(color)
 
 # plot
 fig = plt.figure()
 ax = fig.gca(projection='3d')
-ax.plot_surface(X,Y,Z, rstride=1, cstride=1, facecolors=fcolors, shade=False)
+ax.plot_surface(X, Y, Z, rstride=1, cstride=1, facecolors=fcolors, shade=False)
 ax.set_xlabel('x')
 ax.set_ylabel('y')
 ax.set_zlabel('z')
-fig.canvas.show()
+# fig.canvas.show()
 plt.show()
 
 # import matplotlib.pyplot as plt
