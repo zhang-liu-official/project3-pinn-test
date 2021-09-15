@@ -34,12 +34,8 @@ def pde(x, y):
     rhs = tf.sin(theta)
     return lhs - rhs 
 
-def boundary0(x,_):
-    return np.isclose(x[0],0)
-
-def boundary(x, on_boundary):
-    ## (Note that because of rounding-off errors, it is often wise to use np.isclose to test whether two floating point values are equivalent.)
-    return on_boundary 
+def boundary(x,_):
+    return np.isclose(x[0],0) 
 
 def solution(x):
     theta = x[:]
@@ -50,10 +46,10 @@ def solution(x):
 # Use [r*sin(theta), r*cos(theta)] as features,
 # so that the network is automatically periodic along the theta coordinate.
 # Backend tensorflow.compat.v1 or tensorflow
-# def feature_transform(x):
-#     return tf.concat(
-#         [tf.sin(x[:]), tf.cos(x[:])], axis=1 ## since r = 1 
-#     )
+def feature_transform(x):
+    return tf.concat(
+        [tf.cos(x[:]), tf.sin(x[:]) ], axis=1 ## since r = 1 
+    )
 
 def main():
     # geom = dde.geometry.Rectangle(xmin=[0, 0], xmax=[1, 2 * np.pi])
@@ -64,35 +60,31 @@ def main():
     # if the following code is not included, the solution will be -sin(theta) + C
     bc0 = xde.DirichletBC(
         geom,
-        lambda x: 0 , 
-        boundary0,
+        lambda x: 0, 
+        boundary,
     )
 
     ## BC: u(0) = u(2 * pi) 
-    bc = xde.PeriodicBC(
-        geom,
-        0, 
-        boundary,
-    )
+    # bc = xde.PeriodicBC(
+    #     geom,
+    #     0, 
+    #     boundary,
+    # )
 
     # ref: https://github.com/lululxvi/deepxde/issues/51
-    bc_der = xde.PeriodicBC(
-        geom,
-        0, 
-        boundary,
-        derivative_order=1,
-    )
+    # bc_der = xde.NeumannBC(
+    #     geom,
+    #     lambda x: -1, 
+    #     boundary,
+    # )
 
     # bc = xde.ZeroLossBC(geom, func, boundary)
     data = xde.data.PDE(
-        geom, pde,  [bc0, bc, bc_der], num_domain=100, num_boundary=80, num_test = 1000, solution = solution)
+        geom, pde,  [bc0], num_domain=100, num_boundary=80, num_test = 1000, solution = solution)
     ## original NN parameters
     net = xde.maps.FNN([1] + [500]  + [1], "tanh", "Glorot uniform")
 
-    ## over-parameterized
-    # net = dde.maps.FNN([2] + [1200]*2  + [1], "tanh", "Glorot uniform")
-
-    # net.apply_feature_transform(feature_transform)
+    net.apply_feature_transform(feature_transform)
 
     model = xde.Model(data, net)
     model.compile("adam", lr=0.001, metrics=["l2 relative error"])
