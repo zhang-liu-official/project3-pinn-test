@@ -238,7 +238,10 @@ class PDE(Data):
     def bc_points(self):
         x_bcs = [bc.collocation_points(self.train_x_all) for bc in self.bcs]
         self.num_bcs = list(map(len, x_bcs))
+        # print("************************************")
+        # print(x_bcs)
         self.train_x_bc = (
+            
             np.vstack(x_bcs)
             if x_bcs
             else np.empty([0, self.train_x_all.shape[-1]], dtype=config.real(np))

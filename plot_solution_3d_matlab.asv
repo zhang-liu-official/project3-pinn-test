@@ -1,11 +1,10 @@
 A=importdata('test.dat');
 theta = A(:,1);
 phi = A(:,2);
-true = A(:,3);
-pred = A(:,4);
+pred = A(:,3);
 
 markerSize = 500;
-scatter3(sin(phi).*cos(theta),sin(phi).*sin(theta),cos(phi),markerSize,true,'filled')
+scatter3(sin(phi).*cos(theta),sin(phi).*sin(theta),cos(phi),markerSize,pred,'filled')
 colorbar
 axis equal;
 
@@ -17,11 +16,10 @@ z = A(:,3);
 true = A(:,4);
 pred = A(:,5);
 markerSize = 500;
-scatter3(x,y,z,markerSize,true,'filled')
+scatter3(x,y,z,markerSize,pred,'filled')
 colorbar
+caxis([-0.3 20]);
 %%
-
-caxis([-0.3 0.15]);
 markerSize = 500;
 scatter3(x,y,z,markerSize,true,'filled')
 colorbar

@@ -172,7 +172,7 @@ class PointSetBC(object):
     def error(self, X, inputs, outputs, beg, end):
         return outputs[beg:end, self.component : self.component + 1] - self.values
         
-class ZeroLossBC(BC):
+class ZeroLossBC():
     """if we do not want BC to contribute to the total loss
     
     Args:
@@ -184,8 +184,8 @@ class ZeroLossBC(BC):
         on_boundary: (x, Geometry.on_boundary(x)) -> True/False.
     """
 
-    def __init__(self, geom, on_boundary, component=0):
-        super(ZeroLossBC, self).__init__(geom, on_boundary, component)
+    def __init__(self):
+        super(ZeroLossBC, self).__init__()
 
     def error(self, X, inputs, outputs, beg, end):
         return 0.0

@@ -111,7 +111,9 @@ class Hypersphere(Geometry):
         return np.linalg.norm(x - self.center, axis=-1) <= self.radius
 
     def on_boundary(self, x):
-        return np.isclose(np.linalg.norm(x - self.center, axis=-1), self.radius)
+        # return np.isclose(np.linalg.norm(x - self.center, axis=-1), self.radius)
+        return np.isclose(x,[1,0,0])
+
 
     def distance2boundary_unitdirn(self, x, dirn):
         """https://en.wikipedia.org/wiki/Line%E2%80%93sphere_intersection"""
@@ -155,6 +157,7 @@ class Hypersphere(Geometry):
 
     def random_boundary_points(self, n, random="pseudo"):
         # """http://mathworld.wolfram.com/HyperspherePointPicking.html"""
+        
         # if random == "pseudo":
         #     X = np.random.normal(size=(n, self.dim)).astype(config.real(np))
         # else:
@@ -163,9 +166,8 @@ class Hypersphere(Geometry):
         # X = preprocessing.normalize(X)
         # return self.radius * X + self.center
 
-        ## for S^2:
-        X = [1, 0, 0]
-        return X
+        # # for S^2
+        return [1, 0, 0]
         
     def background_points(self, x, dirn, dist2npt, shift):
         dirn = dirn / np.linalg.norm(dirn)
