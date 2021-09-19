@@ -5,7 +5,7 @@ true = A(:,3);
 pred = A(:,4);
 
 markerSize = 500;
-scatter3(sin(phi).*cos(theta),sin(phi).*sin(theta),cos(phi),markerSize,true,'filled')
+scatter3(sin(phi).*cos(theta),sin(phi).*sin(theta),cos(phi),markerSize,pred,'filled')
 colorbar
 axis equal;
 
